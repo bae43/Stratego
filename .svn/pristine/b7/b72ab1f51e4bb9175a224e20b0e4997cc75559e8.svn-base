@@ -1,0 +1,20 @@
+package server;
+
+import java.rmi.Remote;
+import java.rmi.RemoteException;
+
+import model.StrategoBoard;
+import util.MoveTuple;
+
+public interface StrategoServer extends Remote {
+	
+	/** Checks the validity of the move given by the MoveTuple */
+	public boolean isMoveValid(MoveTuple move) throws RemoteException;
+	
+	/** Executes the move given by the MoveTuple */
+	public boolean takeMove(MoveTuple move) throws RemoteException;
+	
+	/** Provides a snapshot of the current state of the board */
+	public StrategoBoard getBoard() throws RemoteException;
+	
+}

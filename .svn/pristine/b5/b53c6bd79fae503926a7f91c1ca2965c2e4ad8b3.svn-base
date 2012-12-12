@@ -1,0 +1,29 @@
+package server;
+
+import java.rmi.RemoteException;
+
+import model.StrategoBoard;
+
+import util.MoveTuple;
+
+public class StrategoServerImple implements StrategoServer {
+
+	@Override
+	public boolean isMoveValid(MoveTuple move) throws RemoteException {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean takeMove(MoveTuple move) throws RemoteException {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public StrategoBoard getBoard() throws RemoteException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+}

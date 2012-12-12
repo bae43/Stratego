@@ -1,0 +1,137 @@
+package server;
+
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.rmi.AccessException;
+import java.rmi.AlreadyBoundException;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
+
+import model.StrategoBoard;
+import util.Move;
+
+public class StrategoServerImple implements StrategoServer {
+	
+	/** The last move registered by the server */
+	private Move last;
+	
+	private StrategoBoard myBoard;
+	
+	public static void main(String[] args) {
+		try {
+			Runtime.getRuntime().exec("rmiregistry");
+			System.setProperty("java.rmi.server.codebase", 
+					StrategoServerImple.class.getProtectionDomain().getCodeSource().getLocation().toString());
+		} catch (IOException e) {
+			System.err.println("rmiregistry command error " + e.toString());
+			e.printStackTrace();
+		}
+		try {	
+			StrategoServer obj = new StrategoServerImple();
+		    StrategoServer stub = (StrategoServer) UnicastRemoteObject.exportObject(obj, 0);
+
+		    // Bind the remote object's stub in the registry
+		    Registry registry = LocateRegistry.getRegistry();
+		    registry.bind("Server", stub);
+		    System.err.println("Server ready");
+		} catch (RemoteException re) {
+			System.err.println("Remote Server Exception: " + re.toString());
+		} catch (AlreadyBoundException abe) {
+			System.err.println("Server Binding Exception: " + abe.toString());
+		}
+		JFrame frame = new JFrame();
+		JButton unbind = new JButton("Terminate Server");
+		unbind.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				Registry registry = null;
+				try {
+					registry = LocateRegistry.getRegistry();
+				} catch (RemoteException e) {
+					e.printStackTrace();
+				}
+				try {
+					if (registry != null) {
+						registry.unbind("Server");
+					} else {
+						throw new RemoteException();
+					}
+				} catch (AccessException e) {
+					System.err.println("Server Access Exception: " + e.toString());
+				} catch (RemoteException e) {
+					System.err.println("Remote Server Exception: " + e.toString());
+				} catch (NotBoundException e) {
+					System.err.println("Server Not Bound: " + e.toString());
+				}
+				System.exit(0);
+			}
+			
+		});
+		frame.add(unbind);
+		frame.setSize(new Dimension(200, 200));
+		frame.setVisible(true); 
+	}
+	
+	public StrategoServerImple() {
+		
+	}
+
+	@Override
+	public boolean isMoveValid(Move move) throws RemoteException {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean takeMove(Move move) throws RemoteException {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public StrategoBoard getBoard() throws RemoteException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Move getLastMove() throws RemoteException {
+		return last;
+	}
+
+	
+	//XXX Bryce's interface (combine?)
+	
+//	private Move last;
+//	private boolean game = true;
+//	
+//	
+//	//security issues with clients placing others' pieces?
+//	//should we verify clients to color?
+//	public void placePiece(byte color, int piece, int[][] loc){
+//		
+//	}
+//
+//	public void move(int[][] move) {
+//		if (game == true) {
+//			last = new Move(new int[] { move[0][0], move[0][1] }, new int[] {
+//					move[1][0], move[1][1] });
+//		}
+//	}
+//
+//  Why have a Move class to abstract move data if we just pass it around as a 2d array?
+//
+//	public Move getLastMove() {
+//		return last;
+//	}
+
+}

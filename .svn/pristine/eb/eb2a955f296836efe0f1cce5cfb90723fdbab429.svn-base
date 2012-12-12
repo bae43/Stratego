@@ -1,0 +1,224 @@
+package client;
+
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.Polygon;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
+import java.io.File;
+import java.io.IOException;
+import java.rmi.RemoteException;
+import java.util.Arrays;
+
+import javax.imageio.ImageIO;
+import javax.swing.JPanel;
+
+import model.StrategoBoard;
+import model.StrategoPiece;
+import model.StrategoPiece.Team;
+
+import server.DragonHobbit;
+import util.Move;
+
+public class Board extends JPanel {
+
+	private static final long serialVersionUID = -7159934193600175228L;
+
+	DragonHobbit s;
+	protected Images imgs;
+
+	/** value for having no selection present on the board */
+	protected static final int[] NO_SEL = new int[] { -1, -1 };
+	
+	protected Team thisTeam = Team.blue;
+
+	int[] hovered = new int[2];
+	int[] selected = NO_SEL.clone();
+
+
+	public Board(DragonHobbit s, Images imgs) {
+
+		this.s = s;
+
+		setBackground(Color.black);
+
+		this.imgs = imgs;
+
+		setListeners();
+		repaint();
+		setVisible(true);
+	}
+
+	public void paintComponent(Graphics g) {
+		super.paintComponent(g);
+
+		StrategoBoard b = null;
+		try {
+			b = s.getBoard();
+		} catch (RemoteException e) {
+
+			e.printStackTrace();
+		}
+
+		// background image
+		g.drawImage(imgs.bg(), 0, 0,
+				null);
+
+		Polygon sq;
+
+		// highlights hovered square
+		if (hovered[0] < 10 && hovered[1] < 10) {
+			sq = square(hovered[0], hovered[1]);
+			g.setColor(new Color(.7f, .7f, .4f, .6f));
+			g.fillPolygon(sq);
+		}
+
+		// highlights selected square
+		// checks that one is selected and its in bounds
+		if (!Arrays.equals(selected, NO_SEL) && selected[0] < 10
+				&& selected[1] < 10) {
+
+			sq = square(selected[0], selected[1]);
+			g.setColor(new Color(1f, .5f, 0f, .4f));
+			g.fillPolygon(sq);
+			g.setColor(new Color(1f, 1f, 0f));
+			g.drawPolygon(sq);
+		}
+
+		// tiled overlay (very light black) may remove later
+		g.setColor(new Color(0, 0, 0, .1f));
+		for (int i = 0; i < 10; i++) {
+			for (int j = 0; j < 10; j++) {
+
+				g.drawPolygon(square(i, j));
+				drawPiece(g, b, i, j);
+
+			}
+		}
+	}
+
+	/** returns a square polygon given board coordinates */
+	protected Polygon square(int x, int y) {
+
+		Polygon sq = new Polygon();
+		for (int k = 0; k < 4; k++) {
+			int xPoint = 0
+					+ (int) (StrategoClient.SQUARE_SIZE / 2 + x * (StrategoClient.CELL_DIMS) + StrategoClient.SQUARE_SIZE
+							/ Math.sqrt(2)
+							* Math.cos((k * 2 + 1) * Math.PI / 4));
+			int yPoint = 0
+					+ (int) (StrategoClient.SQUARE_SIZE / 2 + y * (StrategoClient.CELL_DIMS) + StrategoClient.SQUARE_SIZE
+							/ Math.sqrt(2)
+							* Math.sin((k * 2 + 1) * Math.PI / 4));
+
+			sq.addPoint(xPoint, yPoint);
+		}
+		return sq;
+
+	}
+
+	/** draws the image for the piece at location x,y */
+	private void drawPiece(Graphics g, StrategoBoard b, int x, int y) {
+
+		int[] loc = new int[] { x, y };
+		try {
+
+			StrategoPiece piece = b.getPiece(loc);
+
+			if (piece == null) {
+				return;
+			}
+
+			if (piece.team().equals(StrategoPiece.Team.red)) {
+				g.drawImage(imgs.pieceRed(s.getBoard().getPiece(loc).rank()),
+						0 + x * StrategoClient.CELL_DIMS,
+						0 + y * StrategoClient.CELL_DIMS, null);
+			} else {
+				g.drawImage(imgs.pieceBlue(s.getBoard().getPiece(loc).rank()),
+						0 + x * StrategoClient.CELL_DIMS,
+						0 + y * StrategoClient.CELL_DIMS, null);
+
+			}
+		} catch (RemoteException re) {
+
+			System.out.println("Error drawing piece at (" + x + "," + y + ")");
+			re.printStackTrace();
+		}
+	}
+
+	/** adds main mouse listeners to the game board */
+	private void setListeners() {
+
+		// sq hovered over
+		addMouseMotionListener(new MouseMotionAdapter() {
+			public void mouseMoved(MouseEvent e) {
+
+				int xLoc = e.getX();
+				int yLoc = e.getY();
+
+				hovered = new int[] {
+						(int) ((xLoc) / StrategoClient.CELL_DIMS),
+						(int) ((yLoc) / StrategoClient.CELL_DIMS) };
+
+				repaint();
+
+			}
+		});
+
+		// sq selection
+		addMouseListener(new MouseAdapter() {
+			public void mousePressed(MouseEvent e) {
+
+				// check bounds of click
+				if (hovered[0] < 10 && hovered[1] < 10) {
+					try {
+
+						// none selected
+						if (Arrays.equals(selected, NO_SEL)) {
+							selected = hovered;
+						}
+
+						// already selected
+						else if (Arrays.equals(hovered, selected)) {
+							selected = NO_SEL.clone();
+
+						} else {
+
+							int[] old = selected.clone();
+							selected = hovered;
+
+							// do nothing if 1st is empty
+							if (!s.hasPieceAt(old)) {
+
+								repaint();
+								return;
+
+								// 1st has piece
+							} else {
+								Move m = new Move(old, selected);
+
+								// automatically takes move
+								if (!s.takeMove(m)) {
+									// XXX INVALID MOVE HANDLING
+								}
+							}
+
+						}
+					} catch (ArrayIndexOutOfBoundsException aiobe) {
+						selected = hovered;
+						aiobe.printStackTrace();
+					} catch (Exception e2) {
+						e2.printStackTrace();
+					}
+
+					repaint();
+
+				}
+			}
+
+		});
+
+	}
+}

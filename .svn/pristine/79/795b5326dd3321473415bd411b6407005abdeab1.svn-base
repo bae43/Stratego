@@ -1,0 +1,110 @@
+package client;
+
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.rmi.AccessException;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+
+import javax.swing.JApplet;
+import javax.swing.JLayeredPane;
+
+import model.StrategoBoard;
+
+import server.StrategoServer;
+
+public class StrategoClient extends JApplet {
+
+	private static final long serialVersionUID = 1L;
+
+	StrategoServer s;
+
+	Images imgs;
+	JLayeredPane lp;
+	BoardInit bi;
+	PieceAdder pa;
+	Board b;
+
+	/** border size surrounding main board */
+	public static final int BORDER_SIZE = 20;
+
+	/** main board size */
+	public static final int BOARD_SIZE = (int) Toolkit.getDefaultToolkit()
+			.getScreenSize().getHeight()
+			- (2 * BORDER_SIZE + 50);
+
+	/** Space between squares */
+	public static final int SPACE_SIZE = 2;
+
+	/** side length of squares */
+	public static final int SQUARE_SIZE = (int) (BOARD_SIZE / 10 - SPACE_SIZE / 2);
+
+	/** size total cell including spacing */
+	public static final int CELL_DIMS = SQUARE_SIZE + SPACE_SIZE;
+
+	public void init() {
+
+		setMinimumSize(new Dimension((SQUARE_SIZE + SPACE_SIZE) * 10,
+				(SQUARE_SIZE + SPACE_SIZE) * 10));
+	}
+
+	public void start() {
+		try {
+			Registry registry = LocateRegistry.getRegistry();
+			s = (StrategoServer) registry.lookup("Server");
+
+		} catch (AccessException e) {
+
+			e.printStackTrace();
+		} catch (RemoteException e) {
+
+			e.printStackTrace();
+		} catch (NotBoundException e) {
+
+			e.printStackTrace();
+		}
+
+		imgs = new Images();
+
+		lp = getLayeredPane();
+		lp.setBackground(Color.black);
+		setBackground(Color.black);
+
+		initBoard();
+		//startGame();
+
+		setVisible(true);
+
+	}
+
+	protected void initBoard() {
+
+		pa = new PieceAdder(imgs);
+		pa.setBounds(BORDER_SIZE + SQUARE_SIZE, BORDER_SIZE + BOARD_SIZE / 16,
+				BOARD_SIZE - 2 * SQUARE_SIZE, BOARD_SIZE / 4);
+		lp.add(pa, new Integer(1));
+
+		bi = new BoardInit(s, imgs, pa);
+		bi.setBounds(BORDER_SIZE, BORDER_SIZE, BOARD_SIZE, BOARD_SIZE);
+		lp.add(bi, new Integer(0));
+
+	}
+
+	protected void startGame() {// StrategoBoard sb) {
+
+		try {
+			lp.remove(bi);
+			lp.remove(pa);
+		} catch (Exception e) {
+		}
+
+		b = new Board(s, imgs);
+		b.setBounds(BORDER_SIZE, BORDER_SIZE, BOARD_SIZE, BOARD_SIZE);
+		lp.add(b, new Integer(0));
+
+	}
+
+}

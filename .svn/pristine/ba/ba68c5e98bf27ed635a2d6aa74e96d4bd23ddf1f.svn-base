@@ -1,0 +1,26 @@
+package model;
+
+public class StrategoSquare {
+	
+	private boolean isWater;
+	
+	private StrategoPiece myPiece;
+	
+	public StrategoSquare(boolean water) {
+		isWater = water;
+	}
+	
+	public void addPiece(StrategoPiece piece) {
+		myPiece = piece;
+	}
+	
+	public boolean isWater() {
+		return isWater;
+	}
+	
+	public StrategoPiece removePiece() {
+		StrategoPiece tempPiece = myPiece;
+		myPiece = null;
+		return tempPiece;
+	}
+}

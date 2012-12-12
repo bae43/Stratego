@@ -1,0 +1,32 @@
+package model;
+
+public class StrategoPiece {
+	
+	/** The team for this piece */
+	private Team myTeam;
+	
+	// 0 = Spy
+	// 1-9 = Corresponding Rank
+	// 10 = Bomb
+	// 11 = Flag
+	private int myRank;
+	
+	public StrategoPiece(Team team, int rank) {
+		myTeam = team;
+		myRank = rank;
+	}
+	
+	public Team getTeam() {
+		return myTeam;
+	}
+	
+	public int getRank() {
+		return myRank;
+	}
+	
+	enum Team {
+		blue,
+		red;
+	}
+	
+}

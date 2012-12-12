@@ -1,0 +1,39 @@
+package client;
+
+import java.awt.Dimension;
+import java.awt.Toolkit;
+
+import javax.swing.JApplet;
+
+public class StrategoClient extends JApplet {
+
+	private static final long serialVersionUID = 1L;
+
+	/** border size surrounding main board */
+	public static final int BORDER_SIZE = 20;
+
+	/** main board size */
+	public static final int BOARD_SIZE = (int) Toolkit.getDefaultToolkit()
+			.getScreenSize().getHeight()
+			- (2 * BORDER_SIZE + 50);
+
+	/** Space between squares */
+	public static final int SPACE_SIZE = 2;
+
+	/** side length of squares */
+	public static final int SQUARE_SIZE = (int) (BOARD_SIZE / 10 - SPACE_SIZE/2);
+
+	public void init() {
+
+		setMinimumSize(new Dimension((SQUARE_SIZE + SPACE_SIZE) * 10,
+				(SQUARE_SIZE + SPACE_SIZE) * 10));
+	}
+
+	public void start() {
+		add(new Board());
+
+		setVisible(true);
+
+	}
+
+}

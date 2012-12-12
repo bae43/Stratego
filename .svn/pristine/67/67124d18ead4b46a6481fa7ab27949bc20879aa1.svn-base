@@ -1,0 +1,134 @@
+package client;
+
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.Polygon;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
+import java.awt.image.RenderedImage;
+import java.io.File;
+import java.io.IOException;
+
+import javax.imageio.ImageIO;
+import javax.swing.JPanel;
+
+public class Board extends JPanel {
+
+	private static final long serialVersionUID = 1L;
+
+	Image board = null;
+
+	int[] hovered = new int[2];
+	int[] selected = new int[] { -1, -1 };
+
+	private static final int SQUARE_DIMS = StrategoClient.SPACE_SIZE
+			+ StrategoClient.SQUARE_SIZE;
+
+	public Board() {
+
+		setBackground(Color.black);
+
+		try {
+
+			board = ImageIO.read(new File("rsc/board.png"));
+		} catch (IOException e) {
+			System.out.println("Error loading board image");
+			e.printStackTrace();
+
+		}
+
+		setListeners();
+		repaint();
+		setVisible(true);
+	}
+
+	public void paintComponent(Graphics g) {
+		super.paintComponent(g);
+
+		g.drawImage(board, StrategoClient.BORDER_SIZE,
+				StrategoClient.BORDER_SIZE, null);
+
+		g.setColor(new Color(0, 0, 0, .1f));
+		for (int i = 0; i < 10; i++) {
+			for (int j = 0; j < 10; j++) {
+
+				drawSquare(g, square(i, j));
+
+			}
+		}
+
+		// highlights hovered square
+		Polygon sq = square(hovered[0], hovered[1]);
+		g.setColor(new Color(.3f, .3f, .7f, .4f));
+		g.fillPolygon(sq);
+
+		if (selected[0] != -1) {
+			sq = square(selected[0], selected[1]);
+			g.setColor(new Color(1f, .5f, 0f,.4f));
+			g.fillPolygon(sq);
+			g.setColor(new Color(1f, 1f, 0f));
+			g.drawPolygon(sq);
+		}
+
+	}
+
+	private Polygon square(int x, int y) {
+
+		Polygon sq = new Polygon();
+		for (int k = 0; k < 4; k++) {
+			int xPoint = StrategoClient.BORDER_SIZE
+					+ (int) (StrategoClient.SQUARE_SIZE / 2 + x * (SQUARE_DIMS) + StrategoClient.SQUARE_SIZE
+							/ Math.sqrt(2)
+							* Math.cos((k * 2 + 1) * Math.PI / 4));
+			int yPoint = StrategoClient.BORDER_SIZE
+					+ (int) (StrategoClient.SQUARE_SIZE / 2 + y * (SQUARE_DIMS) + StrategoClient.SQUARE_SIZE
+							/ Math.sqrt(2)
+							* Math.sin((k * 2 + 1) * Math.PI / 4));
+
+			sq.addPoint(xPoint, yPoint);
+		}
+		return sq;
+
+	}
+
+	private void drawSquare(Graphics g, Polygon p) {
+
+	}
+
+	private void setListeners() {
+
+		addMouseMotionListener(new MouseMotionAdapter() {
+			public void mouseMoved(MouseEvent e) {
+
+				int xLoc = e.getX();
+				int yLoc = e.getY();
+
+				hovered = new int[] {
+						(int) ((xLoc - StrategoClient.BORDER_SIZE) / SQUARE_DIMS),
+						(int) ((yLoc - StrategoClient.BORDER_SIZE) / SQUARE_DIMS) };
+
+				repaint();
+
+			}
+		});
+
+		addMouseListener(new MouseAdapter() {
+			public void mousePressed(MouseEvent e) {
+
+				if (hovered.equals(selected)) {
+					selected = new int[] { -1, -1 };
+				} else {
+					selected = hovered;
+				}
+
+				repaint();
+
+			}
+		});
+
+	}
+
+}

@@ -1,0 +1,32 @@
+package model;
+
+public class StrategoBoard {
+	
+	private StrategoSquare[][] board = new StrategoSquare[10][10];
+	
+	public StrategoBoard() {
+		for(int i = 0; i < 10; i++) {
+			for(int j = 0; j < 10; j++) {
+				if ((i == 2 && j == 4) || (i == 2 && j == 5) || (i == 3 && j == 4) || (i == 3 && j == 5) || 
+						(i == 6 && j == 4) || (i == 6 && j == 5) || (i == 7 && j == 4) || (i == 7 && j == 5)) {
+					board[i][j] = new StrategoSquare(true);
+				} else {
+					board[i][j] = new StrategoSquare(false);
+				}
+			}
+		}
+	}
+	
+	public StrategoPiece getPiece(int i, int j) {
+		return board[i][j].removePiece();
+	}
+	
+	public void addPieceToSquare(StrategoPiece piece, int i, int j) {
+		board[i][j].addPiece(piece);
+	}
+	
+	public boolean hasWater(int i, int j) {
+		return board[i][j].isWater();
+	}
+	
+}

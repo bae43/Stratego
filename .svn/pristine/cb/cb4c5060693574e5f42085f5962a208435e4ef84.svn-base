@@ -1,0 +1,179 @@
+package client;
+
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Polygon;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
+
+import javax.swing.JPanel;
+
+public class Board extends JPanel {
+
+	private static final long serialVersionUID = 1L;
+
+	int[] selected = new int[2];
+	private static final int SQUARE_DIMS = StrategoClient.SPACE_SIZE + StrategoClient.SQUARE_SIZE; 
+
+	public Board() {
+
+		setBackground(new Color(0, .3f, .6f));
+		setListeners();
+		repaint();
+		setVisible(true);
+	}
+
+	public void paintComponent(Graphics g) {
+		super.paintComponent(g);
+
+		for (int i = 0; i < 10; i++) {
+			for (int j = 0; j < 10; j++) {
+
+				drawSquare(g, Color.black, i, j);
+
+			}
+		}
+
+		
+		//highlights hovered square
+		if (selected != null) {
+			System.out.println(selected[0] + " " + selected[1]);
+			drawSquare(g, new Color(.3f, .7f, .1f), selected[0], selected[1]);
+		}
+
+	}
+
+	private void drawSquare(Graphics g, Color c, int x, int y) {
+
+		g.setColor(c);
+
+		Polygon sq = new Polygon();
+		for (int k = 0; k < 4; k++) {
+			int xPoint = (int) (x
+					* (SQUARE_DIMS) + StrategoClient.SQUARE_SIZE
+					* Math.cos((k * 2 + 1) * Math.PI / 4));
+			int yPoint = (int) (y
+					* (SQUARE_DIMS) + StrategoClient.SQUARE_SIZE
+					* Math.sin((k * 2 + 1) * Math.PI / 4));
+
+			sq.addPoint(xPoint, yPoint);
+		}
+
+		g.fillPolygon(sq);
+
+	}
+
+	private void setListeners() {
+
+		addMouseMotionListener(new MouseMotionAdapter() {
+			public void mouseMoved(MouseEvent e) {
+
+				if (!selected.equals(null)) {
+
+					int xLoc = e.getX();
+					int yLoc = e.getY();
+					
+					System.out.println("mouselocation: " + xLoc + " " + yLoc);
+
+					selected = new int[] {
+							(int) (xLoc / (SQUARE_DIMS) + .5),
+							(int) (yLoc / (SQUARE_DIMS) + .5) };
+				
+					repaint();
+				
+				}
+
+			}
+		});
+
+	}
+
+}
+
+//
+// public Map(Frame m) {
+// this.f = m;
+// initialize();
+//
+// startAnimation();
+// }
+//
+// /** sets all initializations for the map */
+// private void initialize() {
+// setBackground(Color.BLACK);
+// imgs = Main.imgs;
+// animSpeed = 1;
+// Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+// origin[0] = 100;
+// origin[1] = (int) (dim.getHeight() - 100);
+// pauseAnim = false;
+// getMouseLoc();
+// setupZoom();
+// setupLook();
+// setupHexSelect();
+//
+// repaint();
+// }
+//
+// /** returns the exact size of the major radius of the board hexes */
+// public double sizeExact() {
+// return size;
+// }
+//
+// /** returns the exact size of the space between board hexes */
+// public double bufferExact() {
+// return buffer;
+// }
+//
+// /** Sets the thickness of rock border */
+// public void setBorder(int b) {
+// rockBorder = b;
+// }
+//
+// /** sets the map's origin (lower left corner) */
+// public void setOrigin(int[] o) {
+// origin = o;
+// }
+//
+// /** returns the timer used for animating pieces */
+// public Timer getTimer() {
+// return t;
+// }
+//
+// /** toggles animation */
+// public void startStopAnim() {
+// pauseAnim = !pauseAnim;
+// }
+//
+// /** toggles the auto play */
+// public void startStopAuto() {
+// pauseAuto = !pauseAuto;
+// }
+//
+// /** gets the selected hex */
+// public Hex getSelectedHex() {
+// return selected;
+// }
+//
+// /** sets the selected hex to the input hex */
+// public void setSelectedHex(Hex hex) {
+// selected = hex;
+// }
+//
+// /** returns output for painting all components in the map */
+// public void paintComponent(Graphics g) {
+//
+// super.paintComponent(g);
+//
+// // resets side panel bounds
+// f.getControls().setBounds(f.getWidth() - f.getControls().width(), 0,
+// f.getControls().width(), f.getHeight());
+//
+// setBounds(0, f.menuBar.getHeight() - 5, f.getWidth(), f.getHeight());
+// drawBorder(g);
+// drawBoard(g);
+// drawSelected(g);
+// drawHexes(g);
+//
+// }

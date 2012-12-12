@@ -1,0 +1,240 @@
+package client;
+
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.Polygon;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
+import java.io.File;
+import java.io.IOException;
+
+import javax.imageio.ImageIO;
+import javax.swing.JPanel;
+
+public class Board extends JPanel {
+
+	private static final long serialVersionUID = 1L;
+
+	Image bg = null;
+	Image[] pieceImgsRed = new Image[13];
+	Image[] pieceImgsBlue = new Image[13];
+	int[][] board = new int[10][10];
+
+	int[] hovered = new int[2];
+	int[] selected = new int[] { -1, -1 };
+
+	private static final int SQUARE_DIMS = StrategoClient.SPACE_SIZE
+			+ StrategoClient.SQUARE_SIZE;
+
+	public Board() {
+
+		// XXX TEST
+		board[1][1] = 2;
+		board[2][2] = 1;
+		board[2][2] = 112;
+		board[6][5] = 0;
+		board[5][2] = 11;
+		board[7][3] = 10;
+
+		setBackground(Color.black);
+
+		loadImgs();
+
+		setListeners();
+		repaint();
+		setVisible(true);
+	}
+
+	/** loads images from file for use in game */
+	private void loadImgs() {
+		try {
+
+			bg = ImageIO.read(new File("rsc/board.png")).getScaledInstance(
+					(int) StrategoClient.BOARD_SIZE,
+					(int) StrategoClient.BOARD_SIZE, Image.SCALE_SMOOTH);
+
+			for (int i = 1; i != 13; i++) {
+				pieceImgsRed[i] = ImageIO.read(new File("rsc/" + i + "R.png"))
+						.getScaledInstance((int) StrategoClient.SQUARE_SIZE,
+								(int) StrategoClient.SQUARE_SIZE,
+								Image.SCALE_SMOOTH);
+				pieceImgsBlue[i] = ImageIO.read(new File("rsc/" + i + "B.png"))
+						.getScaledInstance((int) StrategoClient.SQUARE_SIZE,
+								(int) StrategoClient.SQUARE_SIZE,
+								Image.SCALE_SMOOTH);
+				// System.out.println(i-1); //REMOVE
+			}
+
+		} catch (IOException e) {
+			System.out.println("Error loading images");
+			e.printStackTrace();
+
+		}
+	}
+
+	public void paintComponent(Graphics g) {
+		super.paintComponent(g);
+
+		// background image
+		g.drawImage(bg, StrategoClient.BORDER_SIZE, StrategoClient.BORDER_SIZE,
+				null);
+
+		Polygon sq;
+
+		// highlights hovered square
+		if (hovered[0] < 10 && hovered[1] < 10) {
+			sq = square(hovered[0], hovered[1]);
+			g.setColor(new Color(.7f, .7f, .4f, .6f));
+			g.fillPolygon(sq);
+		}
+
+		// highlights selected square
+		if (selected[0] != -1 && selected[0] < 10 && selected[1] < 10) {
+
+			sq = square(selected[0], selected[1]);
+			g.setColor(new Color(1f, .5f, 0f, .4f));
+			g.fillPolygon(sq);
+			g.setColor(new Color(1f, 1f, 0f));
+			g.drawPolygon(sq);
+		}
+
+		// tiled overlay (very light black) may remove later
+		g.setColor(new Color(0, 0, 0, .1f));
+		for (int i = 0; i < 10; i++) {
+			for (int j = 0; j < 10; j++) {
+
+				g.drawPolygon(square(i, j));
+				drawPiece(g, i, j);
+
+			}
+		}
+	}
+
+	/** returns a square polygon given board coordinates */
+	private Polygon square(int x, int y) {
+
+		Polygon sq = new Polygon();
+		for (int k = 0; k < 4; k++) {
+			int xPoint = StrategoClient.BORDER_SIZE
+					+ (int) (StrategoClient.SQUARE_SIZE / 2 + x * (SQUARE_DIMS) + StrategoClient.SQUARE_SIZE
+							/ Math.sqrt(2)
+							* Math.cos((k * 2 + 1) * Math.PI / 4));
+			int yPoint = StrategoClient.BORDER_SIZE
+					+ (int) (StrategoClient.SQUARE_SIZE / 2 + y * (SQUARE_DIMS) + StrategoClient.SQUARE_SIZE
+							/ Math.sqrt(2)
+							* Math.sin((k * 2 + 1) * Math.PI / 4));
+
+			sq.addPoint(xPoint, yPoint);
+		}
+		return sq;
+
+	}
+
+	/** draws the image for the piece at location x,y */
+	private void drawPiece(Graphics g, int x, int y) {
+		// System.out.println("drawing " + x + " " + y); //REMOVE
+		try {
+			// if (board[x][y] != 0) {
+			// System.out.println(x + " " + y); //REMOVE
+			// }
+
+			int num = board[x][y] % 100;
+			if (board[x][y] / 100 < 1) {
+				g.drawImage(pieceImgsRed[num], StrategoClient.BORDER_SIZE + x
+						* SQUARE_DIMS, StrategoClient.BORDER_SIZE + y
+						* SQUARE_DIMS, null);
+			} else {
+				g.drawImage(pieceImgsBlue[num], StrategoClient.BORDER_SIZE + x
+						* SQUARE_DIMS, StrategoClient.BORDER_SIZE + y
+						* SQUARE_DIMS, null);
+
+			}
+		} catch (Exception e) {
+
+			System.out.println("Error drawing piece at (" + x + "," + y + ")");
+			e.printStackTrace();
+		}
+	}
+
+	/** adds main mouse listeners to the game board */
+	private void setListeners() {
+
+		// sq hovered over
+		addMouseMotionListener(new MouseMotionAdapter() {
+			public void mouseMoved(MouseEvent e) {
+
+				int xLoc = e.getX();
+				int yLoc = e.getY();
+
+				hovered = new int[] {
+						(int) ((xLoc - StrategoClient.BORDER_SIZE) / SQUARE_DIMS),
+						(int) ((yLoc - StrategoClient.BORDER_SIZE) / SQUARE_DIMS) };
+
+				repaint();
+
+			}
+		});
+
+		// sq selection
+		addMouseListener(new MouseAdapter() {
+			public void mousePressed(MouseEvent e) {
+
+				// check bounds of click
+				if (hovered[0] < 10 && hovered[1] < 10) {
+					try {
+
+						// none selected
+						if (selected[0] == -1) {
+							selected = hovered;
+							System.out.println("none selected");
+						}
+
+						// already selected
+						else if (hovered.equals(selected)) {
+							selected = new int[] { -1, -1 };
+							System.out.println("already selected");
+
+							// move piece
+						} else {
+
+							int[] old = selected.clone();
+							int p1 = board[old[0]][old[1]]; // first piece
+															// number
+							selected = hovered;
+
+							int p2 = board[selected[0]][selected[1]];
+
+							// check that old had piece on it
+							if (p1 != 0) {// XXX check if valid move
+								
+								//only move if new spot is empty or opposite team
+								if (p2 == 0 || (int) (p2 / 100) != (int) (p1 / 100)) {
+									System.out.println(p1);
+									System.out.println(p2);
+									// moves piece from old selection to new
+									// selected
+									// board[selected[0]][selected[1]];
+									board[old[0]][old[1]] = 0;
+									board[selected[0]][selected[1]] = p1; // XXX
+
+								}
+							}
+						}
+
+					} catch (ArrayIndexOutOfBoundsException aiobe) {
+						selected = hovered;
+						System.out.println(selected[0]);
+					}
+				}
+
+				repaint();
+
+			}
+
+		});
+
+	}
+
+}

@@ -1,0 +1,23 @@
+package server;
+
+import java.rmi.Remote;
+import java.rmi.RemoteException;
+
+import model.StrategoBoard;
+import util.Move;
+
+public interface StrategoServer extends Remote {
+	
+	/** Checks the validity of the move given by the Move */
+	public boolean isMoveValid(Move move) throws RemoteException;
+	
+	/** Executes the move given by the Move */
+	public boolean takeMove(Move move) throws RemoteException;
+	
+	/** Provides the last move registered by the server */
+	public Move getLastMove() throws RemoteException;
+	
+	/** Provides a snapshot of the current state of the board */
+	public StrategoBoard getBoard() throws RemoteException;
+	
+}

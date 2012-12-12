@@ -1,0 +1,24 @@
+package util;
+
+import java.awt.Point;
+
+public class MoveTuple {
+	
+	private Point startLoc;
+	
+	private Point endLoc;
+	
+	public MoveTuple(Point start, Point end) {
+		startLoc = start;
+		endLoc = end;
+	}
+	
+	public Point getStart() {
+		return startLoc;
+	}
+	
+	public Point getEnd() {
+		return endLoc;
+	}
+	
+}
